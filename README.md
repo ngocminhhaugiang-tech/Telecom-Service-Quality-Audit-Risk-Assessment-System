@@ -8,7 +8,7 @@ The dataset comprises **7,043 customer records** integrated from 6 distinct oper
 ---
 
 ## 🚀 Key Business Metrics (KPIs)
-* **Total Customer Base:** 7,043 active and historical records
+* **Total Customer Base:** 7,043 active and historical records.
 * **Customer Failure Rate (Churn Rate):** 26.54%.
 * **Monthly Financial Loss:** \$139,131 per month in lost recurring revenue.
 * **Revenue Impact Rate:** 30.50%. 
@@ -18,9 +18,8 @@ The dataset comprises **7,043 customer records** integrated from 6 distinct oper
 
 ## 🛠️ Tech Stack & Architecture
 * **Data Integration & Pipeline:** PostgreSQL (Views, CTEs, Window Functions, Custom Risk Scoring Heuristics).
-* **Data Visualization & Analytics:** Power BI Desktop (Interactive Multi-page Executive Dashboards)
-* **Framework:** Data Quality Auditing & Operational Priority List (OPL) Execution
-
+* **Data Visualization & Analytics:** Power BI Desktop (Interactive Multi-page Executive Dashboards).
+* **Framework:** Data Quality Auditing & Operational Priority List (OPL) Execution.
 
 ---
 
@@ -51,8 +50,10 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 ### 🔹 Chapter 5: Corrective Action Priority & Operational Playbook (OPL)
 * Monetizes historical and active data by translating metrics into an **Annualized Revenue at Risk** format.
 * Dynamically generates an **Operational Priority List (OPL)** tracking active critical-risk customers ranked by Churn Score and CLTV for the proactive retention team.
+
 ---
 
+```text
 telco-customer-churn-pipeline/
 ├── data/                             # Thư mục chứa toàn bộ dữ liệu dự án
 │   └── raw/                          # Nơi lưu 6-7 file CSV gốc ban đầu
@@ -71,33 +72,3 @@ telco-customer-churn-pipeline/
 ├── Dashboard_report.pdf              # Dashboard phân tích 5 chương
 ├── Telecom_analysis_report.pdf       # File báo cáo quá trình phân tích
 └── README.md                         # File giới thiệu tổng quan dự án
-
----
-
-## 📊 Dashboard Insights (Power BI)
-
-The interactive dashboard consists of 5 dedicated analytics pages aligned with the SQL architecture:
-
-1. **Executive Overview:** Provides immediate visibility into corporate revenue leakage. Highlights that competitor pressure accounts for **46.38% (\$64,529)** of total monthly loss.
-2. **Customer Demographics & Cohort Segmentation:** Visualizes family structures as a natural retention lock-in (customers with dependents display a mere 3-5% churn rate).
-3. **Root Cause Diagnostics & Driver Analysis:** Proves that contract type, not tenure length, is the decisive retention factor. Month-to-Month contracts suffer a 57.06% dropout cliff in the first 6 months.
-4. **Predictive Risk Alerts:** Features the *Customer Survival Curve* proving that 2-Year contracts maintain near-100% retention in early stages.
-5. **Corrective Action Priority & OPL:** Displays a financial risk optimization playbook simulating savings from structural bundling changes.
-
----
-
-## 🎯 Prescriptive Strategy & OPL Playbook
-
-Based on the data pipelines, three immediate data-driven actions were prescribed:
-
-* **REC 1 (Critical Priority):** Automatically bundle *Online Security + Tech Support* into all Fiber Optic packages. This is projected to drop the 58.33% failure rate down to 32.38%.
-* **REC 2 (High Priority):** Launch automated contract upgrade campaigns triggered precisely at **Month 2** of tenure for Month-to-Month subscribers to bypass the 6-month dropout cliff.
-* **REC 3 (Medium Priority):** Replace the net-negative **Offer E** framework (52.92% churn within 3.7 months) with the high-retention **Offer A** framework (6.73% churn, 70 months average tenure).
-
----
-
-## 🛠️ How to Setup and Run
-1. **Database Initialization:** Run the DDL scripts in `/sql/data_integration.sql` to create tables and set up Primary/Foreign Key constraints.
-2. **Data Ingestion:** Import the raw CSV files into PostgreSQL using pgAdmin Import/Export tool or the provided `COPY` script.
-3. **Run Analytics:** Execute `/sql/chapter_1_to_5_queries.sql` to generate analytical views and populate data structures.
-4. **Dashboard View:** Open `/bi/Telecom_Churn_Analytics.pbix` in Power BI Desktop and update the PostgreSQL data source credentials to refresh the visualizations.
