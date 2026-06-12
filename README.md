@@ -53,7 +53,7 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 * Dynamically generates an **Operational Priority List (OPL)** tracking active critical-risk customers ranked by Churn Score and CLTV for the proactive retention team.
 
 ---
-#telco-customer-churn-pipeline/
+# telco-customer-churn-pipeline/
 │
 ├── data/                             # Thư mục chứa toàn bộ dữ liệu dự án
 │   ├── raw/                          # Nơi lưu 6-7 file CSV gốc ban đầu
