@@ -79,7 +79,9 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 │ 
 │
 └── README.md                         # File giới thiệu tổng quan dự án
+
 ---
+
 ## 📊 Dashboard Insights (Power BI)
 
 The interactive dashboard consists of 5 dedicated analytics pages aligned with the SQL architecture:
