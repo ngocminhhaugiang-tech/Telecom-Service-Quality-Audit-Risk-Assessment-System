@@ -53,17 +53,13 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 * Dynamically generates an **Operational Priority List (OPL)** tracking active critical-risk customers ranked by Churn Score and CLTV for the proactive retention team.
 ---
 
-'''
-# telco-customer-churn-pipeline/
-│
+telco-customer-churn-pipeline/
 ├── data/                             # Thư mục chứa toàn bộ dữ liệu dự án
-│   ├── raw/                          # Nơi lưu 6-7 file CSV gốc ban đầu
-│   │   ├── Telco_customer_churn_demographics.csv
-│   │   ├── Telco_customer_churn_services.csv
-│   │   ├── Telco_customer_churn_status.csv
-│   │   └── ...
-│   
-│
+│   └── raw/                          # Nơi lưu 6-7 file CSV gốc ban đầu
+│       ├── Telco_customer_churn_demographics.csv
+│       ├── Telco_customer_churn_services.csv
+│       ├── Telco_customer_churn_status.csv
+│       └── ...
 ├── sql/                              # Thư mục chứa toàn bộ mã nguồn PostgreSQL
 │   ├── 01_data_integration.sql       # Script tạo bảng (DDL) và import dữ liệu ban đầu
 │   ├── 02_data_cleaning.sql          # Script dọn dẹp, chuẩn hóa dữ liệu thành bảng cleaned
@@ -72,18 +68,12 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 │   ├── 05_root_cause_diagnostics.sql # Script phân tích cho Chương 3
 │   ├── 06_predictive_risk_alerts.sql # Script phân tích cho Chương 4
 │   └── 07_corrective_actions.sql     # Script phân tích cho Chương 5
-│
 ├── Dashboard_report.pdf              # Dashboard phân tích 5 chương
-│   
-│
-├── Telecom_analysis_report.pdf       # file báo cáo quá trình phân tích
-│ 
-│
+├── Telecom_analysis_report.pdf       # File báo cáo quá trình phân tích
 └── README.md                         # File giới thiệu tổng quan dự án
 
-'''
-
 ---
+
 ## 📊 Dashboard Insights (Power BI)
 
 The interactive dashboard consists of 5 dedicated analytics pages aligned with the SQL architecture:
