@@ -1,0 +1,54 @@
+--------------------------------------------------------------------------------
+-- CHƯƠNG 5: CORRECTIVE ACTION PRIORITY & OPL (ƯU TIÊN HÀNH ĐỘNG SỬA ĐỔI)
+--------------------------------------------------------------------------------
+
+-- Q1. BẢNG TỔNG HỢP CHI PHÍ & ĐỊNH LƯỢNG RỦI RO CHI TRÊN DÒNG TIỀN NĂM (FINANCIAL RISK SUMMARY)
+SELECT
+    -- 1. Thiệt hại ĐÃ XẢY RA (Historical Loss - Khách hàng đã rời đi)
+    ROUND(SUM(CASE WHEN churn_label = 'Yes' THEN monthly_charge ELSE 0 END), 2) AS "Lost Monthly Revenue",
+    ROUND(SUM(CASE WHEN churn_label = 'Yes' THEN monthly_charge * 12 ELSE 0 END), 2) AS "Lost Annual Revenue",
+    ROUND(SUM(CASE WHEN churn_label = 'Yes' THEN cltv ELSE 0 END), 0) AS "Total CLTV Lost",
+
+    -- 2. Dòng tiền ĐANG TRONG NGUY HIỂM (Revenue At Risk - Khách hàng hiện tại có nguy cơ)
+    ROUND(SUM(CASE WHEN churn_label = 'No' AND retention_priority <> 'Stable' THEN monthly_charge * 12 ELSE 0 END), 2) AS "Annual Revenue at Risk",
+
+    -- 3. Chi tiết Phân khúc BÁO ĐỘNG ĐỎ (Critical Segment - Cần xử lý trong 24h-48h)
+    COUNT(CASE WHEN churn_label = 'No' AND retention_priority = 'Critical' THEN 1 END) AS "Critical Customers",
+    ROUND(SUM(CASE WHEN churn_label = 'No' AND retention_priority = 'Critical' THEN monthly_charge * 12 ELSE 0 END), 2) AS "Critical Annual Revenue",
+
+    -- 4. Chi tiết Phân khúc NGUY CƠ TIỀM ẨN (Hidden Risk Segment - Cần chăm sóc chủ động)
+    COUNT(CASE WHEN churn_label = 'No' AND retention_priority = 'Hidden Risk' THEN 1 END) AS "Hidden Risk Customers",
+    ROUND(SUM(CASE WHEN churn_label = 'No' AND retention_priority = 'Hidden Risk' THEN cltv ELSE 0 END), 0) AS "Hidden Risk Total CLTV"
+FROM vw_churn_master;
+
+
+-- Q2. DANH SÁCH KHÁCH HÀNG KHẨN CẤP CẦN XỬ LÝ (SÁCH PLAYBOOK HÀNH ĐỘNG - OPL TABLE)
+-- Lệnh này xuất ra đúng danh sách bảng chi tiết ở đáy Dashboard để gửi cho đội Sales/Chăm sóc khách hàng đi cứu vãn
+SELECT 
+    customer_id AS "Customer ID",
+    churn_score AS "Churn Score",
+    cltv AS "CLTV",
+    contract AS "Contract",
+    internet_type AS "Internet Type",
+    -- Tự động tính số lượng addon để hiển thị lên bảng giống Power BI
+    ( (online_security = 'Yes')::INT + 
+      (online_backup = 'Yes')::INT + 
+      (device_protection_plan = 'Yes')::INT + 
+      (premium_tech_support = 'Yes')::INT + 
+      (streaming_tv = 'Yes')::INT + 
+      (streaming_movies = 'Yes')::INT + 
+      (streaming_music = 'Yes')::INT  
+    ) AS "Addon Count",
+    monthly_charge AS "Monthly Charge",
+    retention_priority AS "Retention Priority"
+FROM vw_churn_master
+WHERE churn_label = 'No' -- Chỉ lấy những khách hàng hiện tại còn cứu được
+  AND retention_priority IN ('Critical', 'High Risk', 'Hidden Risk') -- Lọc bỏ nhóm Stable an toàn
+ORDER BY 
+    CASE 
+        WHEN retention_priority = 'Critical' THEN 1
+        WHEN retention_priority = 'High Risk' THEN 2
+        ELSE 3 
+    END ASC, 
+    churn_score DESC, 
+    cltv DESC;
