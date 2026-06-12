@@ -52,8 +52,8 @@ The SQL scripts are structured into **5 distinct chapters**, reflecting the anal
 * Monetizes historical and active data by translating metrics into an **Annualized Revenue at Risk** format.
 * Dynamically generates an **Operational Priority List (OPL)** tracking active critical-risk customers ranked by Churn Score and CLTV for the proactive retention team.
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-telco-customer-churn-pipeline/
+---
+#telco-customer-churn-pipeline/
 │
 ├── data/                             # Thư mục chứa toàn bộ dữ liệu dự án
 │   ├── raw/                          # Nơi lưu 6-7 file CSV gốc ban đầu
@@ -79,7 +79,7 @@ telco-customer-churn-pipeline/
 │ 
 │
 └── README.md                         # File giới thiệu tổng quan dự án
--------------------------------------------------------------------------------------------------------
+---
 ## 📊 Dashboard Insights (Power BI)
 
 The interactive dashboard consists of 5 dedicated analytics pages aligned with the SQL architecture:
