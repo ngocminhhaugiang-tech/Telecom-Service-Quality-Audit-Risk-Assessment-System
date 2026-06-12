@@ -1,0 +1,113 @@
+--------------------------------------------------------------------------------
+-- CHƯƠNG 4: PREDICTIVE RISK ALERTS 
+--------------------------------------------------------------------------------
+
+-- BƯỚC TẠO KHUNG DỰ BÁO: Chấm điểm rủi ro dựa trên các "Tín hiệu đèn đỏ" của khách hàng ĐANG HOẠT ĐỘNG
+WITH active_customer_risk AS (
+    SELECT *,
+        -- Tính số lượng addon giống Chương 3
+        ( (online_security = 'Yes')::INT + 
+          (online_backup = 'Yes')::INT + 
+          (device_protection_plan = 'Yes')::INT + 
+          (premium_tech_support = 'Yes')::INT + 
+          (streaming_tv = 'Yes')::INT + 
+          (streaming_movies = 'Yes')::INT + 
+          (streaming_music = 'Yes')::INT  
+        ) AS addon_count,
+        
+        -- Định nghĩa luật dự báo nguy cơ (Rule-based Risk Scoring)
+        CASE
+            -- 1. Nhóm Báo động đỏ (Critical): Mới tham gia + Hợp đồng ngắn hạn + Dịch vụ dính lỗi
+            WHEN contract = 'Month-to-Month' AND tenure_in_months <= 6 
+                 AND (internet_type = 'Fiber Optic' OR offer = 'Offer E' OR satisfaction_score <= 2) THEN 'Critical'
+            
+            -- 2. Nhóm Nguy cơ cao (High Risk): Hợp đồng ngắn hạn + Không có dịch vụ bảo vệ (No Addons)
+            WHEN contract = 'Month-to-Month' AND (internet_type = 'Fiber Optic' AND (online_security = 'No' OR premium_tech_support = 'No')) THEN 'High Risk'
+            WHEN offer = 'Offer E' THEN 'High Risk'
+            
+            -- 3. Nhóm Nguy cơ tiềm ẩn (Hidden Risk): Dù hợp đồng dài hơn hoặc có addon nhưng điểm hài lòng bắt đầu giảm
+            WHEN contract = 'Month-to-Month' AND satisfaction_score = 3 THEN 'Hidden Risk'
+            WHEN contract = 'One Year' AND satisfaction_score <= 2 THEN 'Hidden Risk'
+            
+            -- 4. Nhóm An toàn (Stable)
+            ELSE 'Stable'
+        END AS risk_segment
+    FROM vw_churn_master
+    WHERE churn_value = 0 -- ĐIỀU KIỆN TIÊN QUYẾT: Chỉ lấy khách hàng hiện tại đang ở lại
+)
+
+-- Q1. KPI Tổng quan: Tỷ lệ active có nguy cơ cao & Tổng doanh thu hàng tháng có thể bị mất (Revenue at Risk)
+SELECT 
+    COUNT(*) AS "Total Active Customers",
+    COUNT(CASE WHEN risk_segment IN ('Critical', 'High Risk') THEN 1 END) AS "Projected At-Risk Customers",
+    -- % Tỷ lệ dự báo rời bỏ (Projected Churn Rate)
+    ROUND(
+        COUNT(CASE WHEN risk_segment IN ('Critical', 'High Risk') THEN 1 END) * 100.0 / COUNT(*), 2
+    ) AS "Projected Churn Rate (%)",
+    -- Số tiền tổn thất hàng tháng nếu không can thiệp kịp thời (Monthly Revenue Loss)
+    ROUND(SUM(CASE WHEN risk_segment IN ('Critical', 'High Risk') THEN monthly_charge ELSE 0 END), 2) AS "Monthly Revenue Loss at Risk"
+FROM active_customer_risk;
+
+
+-- Q2. Phân bổ các nhóm rủi ro (Projected Customer Risk Rate - Biểu đồ Donut)
+WITH active_customer_risk AS (
+    SELECT *,
+        CASE
+            WHEN contract = 'Month-to-Month' AND tenure_in_months <= 6 AND (internet_type = 'Fiber Optic' OR offer = 'Offer E' OR satisfaction_score <= 2) THEN 'Critical'
+            WHEN contract = 'Month-to-Month' AND (internet_type = 'Fiber Optic' AND (online_security = 'No' OR premium_tech_support = 'No')) THEN 'High Risk'
+            WHEN offer = 'Offer E' THEN 'High Risk'
+            WHEN contract = 'Month-to-Month' AND satisfaction_score = 3 THEN 'Hidden Risk'
+            WHEN contract = 'One Year' AND satisfaction_score <= 2 THEN 'Hidden Risk'
+            ELSE 'Stable'
+        END AS risk_segment
+    FROM vw_churn_master
+    WHERE churn_value = 0
+)
+SELECT 
+    risk_segment AS "Projected Customer Risk Rate",
+    COUNT(*) AS "Active Customers",
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS "Share (%)"
+FROM active_customer_risk
+GROUP BY risk_segment
+ORDER BY 
+    CASE 
+        WHEN risk_segment = 'Stable' THEN 1
+        WHEN risk_segment = 'Hidden Risk' THEN 2
+        WHEN risk_segment = 'High Risk' THEN 3
+        ELSE 4 
+    END;
+
+
+-- Q3. Chi tiết các tệp khách hàng nguy hiểm nhất cần ưu tiên can thiệp (Bar Chart)
+WITH active_customer_risk AS (
+    SELECT *,
+        ( (online_security = 'Yes')::INT + (online_backup = 'Yes')::INT + (device_protection_plan = 'Yes')::INT + (premium_tech_support = 'Yes')::INT + (streaming_tv = 'Yes')::INT + (streaming_movies = 'Yes')::INT + (streaming_music = 'Yes')::INT ) AS addon_count
+    FROM vw_churn_master
+    WHERE churn_value = 0
+)
+SELECT 
+    CASE 
+        WHEN contract = 'Month-to-Month' AND tenure_in_months <= 6 THEN 'Month-to-Month & 0-6 months'
+        WHEN internet_type = 'Fiber Optic' AND addon_count = 0 THEN 'Fiber Optic & No Addons'
+        WHEN offer = 'Offer E' THEN 'Offer E Subscribers'
+        ELSE 'Other Active Categories'
+    END AS "Projected At Risk Cohorts",
+    COUNT(*) AS "Projected At Risk Customers",
+    ROUND(SUM(monthly_charge), 2) AS "Revenue At Risk Monthly"
+FROM active_customer_risk
+WHERE contract = 'Month-to-Month' OR offer = 'Offer E' OR (internet_type = 'Fiber Optic' AND addon_count = 0)
+GROUP BY 1
+ORDER BY "Revenue At Risk Monthly" DESC;
+
+
+-- Q4. Phân tích lịch sử: Tỷ lệ Churn thực tế theo Loại Hợp đồng & Số tháng gắn bó (Để làm nền tảng cho Đường cong sinh tồn - Survival Curve)
+SELECT
+    contract AS "Contract Type",
+    segment_tenure AS "Tenure Stage",
+    COUNT(*) AS "Total Historical Customers",
+    ROUND(AVG(churn_value::NUMERIC) * 100, 2) AS "Actual Historical Churn Rate (%)",
+    -- Tỷ lệ giữ chân thực tế (Survival Rate) = 100% - Tỷ lệ Churn
+    ROUND((1 - AVG(churn_value::NUMERIC)) * 100, 2) AS "Customer Survival Rate (%)"
+FROM vw_churn_master
+GROUP BY contract, segment_tenure
+ORDER BY contract, MIN(tenure_in_months);
