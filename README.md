@@ -1,4 +1,4 @@
-# 📊 Telecom Customer Churn Analysis & Risk Mitigation Pipeline
+# 📊 Telecom Service Quality Audit & Risk Assessment System
 
 ## 📋 Project Overview
 This project delivers an end-to-end Data Analytics pipeline designed to analyze customer quality failure (churn) for a major Telecom enterprise. Moving beyond basic descriptive reporting, the project implements a full analytical lifecycle: **Descriptive $\rightarrow$ Diagnostic $\rightarrow$ Predictive $\rightarrow$ Prescriptive Framework** using **PostgreSQL** for data engineering/advanced querying and **Power BI** for executive dashboarding.
